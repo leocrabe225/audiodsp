@@ -1,3 +1,7 @@
 .claude/*
 !.claude/settings.json
 CLAUDE.md
+
+# Added by cargo
+
+/target
