@@ -10,7 +10,7 @@ rather than in real time.
 ## Status
 
 Inception.
-See ROADMAP.md for the full plan and the current state.
+See the [ROADMAP](ROADMAP.md) for the full plan and the current state.
 
 ## Build
 
@@ -44,7 +44,6 @@ Each effect has tests that pin its numerical behavior, so a known input is
 expected to produce an exact known output.
 
 ## Testing
-[NOT IMPLEMENTED]
 ```
 cargo test
 ```

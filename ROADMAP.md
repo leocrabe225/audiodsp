@@ -9,6 +9,8 @@ Items are listed roughly in build order. Checked items are done.
 
 - [ ] **WAV read and write.** Load a WAV file into memory, write it back out
   unchanged, and confirm the output is sample accurate against the input.
+  - [x] Convert audio to and from the internal format, verified lossless.
+  - [ ] Read and write WAV files on disk.
 - [ ] **Gain.** Scale the amplitude of every sample by a constant factor.
   Covered by tests for unity gain (output equals input), zero gain (silence),
   and a doubling factor, including the handling of values that would clip.
