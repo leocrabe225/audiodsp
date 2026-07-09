@@ -1,3 +1,5 @@
+use std::path::Path;
+
 fn i16_to_f32(sample: i16) -> f32 {
     let f = sample as f32;
 
@@ -10,6 +12,30 @@ fn f32_to_i16(sample: f32) -> i16 {
 
 fn i16_array_to_f32_vector(sample: &[i16]) -> Vec<f32> {
     sample.iter().map(|s| i16_to_f32(*s)).collect()
+}
+
+fn write_wav(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), hound::Error> {
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(path, spec)?;
+    for s in samples {
+        writer.write_sample(f32_to_i16(*s))?;
+    }
+    writer.finalize()?;
+    Ok(())
+}
+
+fn read_wav(path: &Path) -> Result<(Vec<f32>, u32), hound::Error> {
+    let reader = hound::WavReader::open(path)?;
+    let sample_rate = reader.spec().sample_rate;
+    let samples = reader
+        .into_samples::<i16>()
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok((i16_array_to_f32_vector(&samples), sample_rate))
 }
 
 #[cfg(test)]
@@ -113,5 +139,33 @@ mod tests {
     fn i16_array_returns_matching_f32_vector() {
         let converted = i16_array_to_f32_vector(&[0, 16384, i16::MIN]);
         assert_eq!(converted, vec![0.0, 0.5, -1.0]);
+    }
+
+    #[test]
+    fn wav_round_trip_preserves_samples_and_rate() {
+        let samples: Vec<f32> = vec![0.0, 0.5, -0.5, -1.0]; //exact powers of two for equality check.
+        let sample_rate = 44100;
+
+        let dir = tempfile::tempdir().expect("should create a temp dir");
+        let path = dir.path().join("round_trip.wav");
+
+        write_wav(&path, &samples, sample_rate).expect("write should succeed");
+        let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
+
+        assert_eq!(
+            read_rate, sample_rate,
+            "sample rate must survive the round-trip"
+        );
+        assert_eq!(
+            read_samples.len(),
+            samples.len(),
+            "sample count must survive"
+        );
+        for (&written, &got) in samples.iter().zip(&read_samples) {
+            assert!(
+                written == got,
+                "sample changed across round-trip: wrote {written}, read {got}",
+            );
+        }
     }
 }
