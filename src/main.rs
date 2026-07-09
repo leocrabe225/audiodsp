@@ -84,6 +84,36 @@ mod tests {
     }
 
     #[test]
+    fn nan_f32_converts_to_zero_i16() {
+        let converted = f32_to_i16(f32::NAN);
+        assert_eq!(converted, 0);
+    }
+
+    #[test]
+    fn inf_f32_converts_to_max_i16() {
+        let converted = f32_to_i16(f32::INFINITY);
+        assert_eq!(converted, 32767);
+    }
+
+    #[test]
+    fn neg_inf_f32_converts_to_min_i16() {
+        let converted = f32_to_i16(f32::NEG_INFINITY);
+        assert_eq!(converted, -32768);
+    }
+
+    #[test]
+    fn pos_f32_that_should_round_up_actually_truncates_i16() {
+        let converted = f32_to_i16(1000.9375 / 32768.0); // 1000.9375 (1000 + 15 / 16), rounding gives 1001, truncation gives 1000
+        assert_eq!(converted, 1000);
+    }
+
+    #[test]
+    fn neg_f32_that_should_round_up_actually_truncates_i16() {
+        let converted = f32_to_i16(-1000.9375 / 32768.0); // -1000.9375 (1000 + 15 / 16), rounding gives 1001, truncation gives -1000
+        assert_eq!(converted, -1000);
+    }
+
+    #[test]
     fn i16_array_returns_matching_f32_vector() {
         let converted = i16_array_to_f32_vector(&[0, 16384, i16::MIN]);
         assert_eq!(converted, vec![0.0, 0.5, -1.0]);
