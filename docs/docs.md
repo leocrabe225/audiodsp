@@ -9,6 +9,9 @@
 - `assert_eq!` is correct for exact, integer-valued results (integers, and
   exactly-representable/exactly-computed floats like `0.0`/`-1.0`) — it also
   prints both sides on failure, and clippy's `float_cmp` permits these.
+- Write an exact non-trivial expected value as the arithmetic that shows why
+  it's exact (`32767.0 / 32768.0`), never a hand-rounded decimal (`0.9999695`)
+  that only happens to round to the same bits.
 - Small finite input domains: prefer an exhaustive loop with a diagnostic
   message (`assert_eq!(got, want, "... {x}")`) over sampling.
 - `proptest` is reserved for large/continuous domains (e.g. the low-pass

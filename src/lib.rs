@@ -168,4 +168,107 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn wav_round_trip_preserves_rate_even_when_empty() {
+        let samples: Vec<f32> = vec![];
+        let sample_rate = 44100;
+
+        let dir = tempfile::tempdir().expect("should create a temp dir");
+        let path = dir.path().join("round_trip.wav");
+
+        write_wav(&path, &samples, sample_rate).expect("write should succeed");
+        let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
+
+        assert_eq!(
+            read_rate, sample_rate,
+            "sample rate must survive the round-trip"
+        );
+        assert_eq!(
+            read_samples.len(),
+            samples.len(),
+            "sample count must survive"
+        );
+    }
+
+    #[test]
+    fn wav_round_trip_clamps_to_i16_extremes() {
+        let samples: Vec<f32> = vec![-1.0, 1.0];
+        let expected_samples: Vec<f32> = vec![-1.0, 32767.0 / 32768.0];
+        let sample_rate = 44100;
+
+        let dir = tempfile::tempdir().expect("should create a temp dir");
+        let path = dir.path().join("round_trip.wav");
+
+        write_wav(&path, &samples, sample_rate).expect("write should succeed");
+        let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
+
+        assert_eq!(
+            read_rate, sample_rate,
+            "sample rate must survive the round-trip"
+        );
+        assert_eq!(
+            read_samples.len(),
+            expected_samples.len(),
+            "sample count must survive"
+        );
+        for (&written, &got) in expected_samples.iter().zip(&read_samples) {
+            assert!(
+                written == got,
+                "sample changed across round-trip: wrote {written}, read {got}",
+            );
+        }
+    }
+
+    #[test]
+    fn wav_read_from_fixture_gets_samples_and_rate() {
+        let expected_samples: Vec<f32> = vec![0.0, 0.5, -0.5, -1.0];
+        let expected_sample_rate = 8000;
+
+        let path = Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/reference.wav"
+        ));
+
+        let (read_samples, read_rate) = read_wav(path).expect("read should succeed");
+
+        assert_eq!(
+            read_rate, expected_sample_rate,
+            "sample rate must be read properly"
+        );
+        assert_eq!(
+            read_samples.len(),
+            expected_samples.len(),
+            "sample count must be read properly"
+        );
+        for (&expected, &got) in expected_samples.iter().zip(&read_samples) {
+            assert!(
+                expected == got,
+                "sample read improperly: expected {expected}, read {got}",
+            );
+        }
+    }
+
+    #[test]
+    fn wav_read_from_non_existing_path_return_io_error() {
+        let path = Path::new("This path so does not exist.");
+
+        match read_wav(path).unwrap_err() {
+            hound::Error::IoError(_) => {}
+            other => panic!("expected a IoError, got {other:?}"),
+        };
+    }
+
+    #[test]
+    fn wav_read_from_malformed_file_return_format_error() {
+        let path = Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/malformed.wav"
+        ));
+
+        match read_wav(path).unwrap_err() {
+            hound::Error::FormatError(_) => {}
+            other => panic!("expected a FormatError, got {other:?}"),
+        };
+    }
 }
