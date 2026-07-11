@@ -156,21 +156,7 @@ mod tests {
         write_wav(&path, &samples, sample_rate).expect("write should succeed");
         let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
 
-        assert_eq!(
-            read_rate, sample_rate,
-            "sample rate must survive the round-trip"
-        );
-        assert_eq!(
-            read_samples.len(),
-            samples.len(),
-            "sample count must survive"
-        );
-        for (&written, &got) in samples.iter().zip(&read_samples) {
-            assert!(
-                written == got,
-                "sample changed across round-trip: wrote {written}, read {got}",
-            );
-        }
+        assert_samples_and_rate(&read_samples, &samples, read_rate, sample_rate);
     }
 
     #[test]
@@ -184,15 +170,7 @@ mod tests {
         write_wav(&path, &samples, sample_rate).expect("write should succeed");
         let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
 
-        assert_eq!(
-            read_rate, sample_rate,
-            "sample rate must survive the round-trip"
-        );
-        assert_eq!(
-            read_samples.len(),
-            samples.len(),
-            "sample count must survive"
-        );
+        assert_samples_and_rate(&read_samples, &samples, read_rate, sample_rate);
     }
 
     #[test]
@@ -207,21 +185,7 @@ mod tests {
         write_wav(&path, &samples, sample_rate).expect("write should succeed");
         let (read_samples, read_rate) = read_wav(&path).expect("read should succeed");
 
-        assert_eq!(
-            read_rate, sample_rate,
-            "sample rate must survive the round-trip"
-        );
-        assert_eq!(
-            read_samples.len(),
-            expected_samples.len(),
-            "sample count must survive"
-        );
-        for (&written, &got) in expected_samples.iter().zip(&read_samples) {
-            assert!(
-                written == got,
-                "sample changed across round-trip: wrote {written}, read {got}",
-            );
-        }
+        assert_samples_and_rate(&read_samples, &expected_samples, read_rate, sample_rate);
     }
 
     #[test]
@@ -236,21 +200,12 @@ mod tests {
 
         let (read_samples, read_rate) = read_wav(path).expect("read should succeed");
 
-        assert_eq!(
-            read_rate, expected_sample_rate,
-            "sample rate must be read properly"
+        assert_samples_and_rate(
+            &read_samples,
+            &expected_samples,
+            read_rate,
+            expected_sample_rate,
         );
-        assert_eq!(
-            read_samples.len(),
-            expected_samples.len(),
-            "sample count must be read properly"
-        );
-        for (&expected, &got) in expected_samples.iter().zip(&read_samples) {
-            assert!(
-                expected == got,
-                "sample read improperly: expected {expected}, read {got}",
-            );
-        }
     }
 
     #[test]
@@ -274,6 +229,17 @@ mod tests {
             hound::Error::FormatError(_) => {}
             other => panic!("expected a FormatError, got {other:?}"),
         };
+    }
+
+    #[track_caller]
+    fn assert_samples_and_rate(got: &[f32], want: &[f32], read_rate: u32, wanted_rate: u32) {
+        assert_eq!(read_rate, wanted_rate, "sample rate must be read properly");
+
+        assert_eq!(got.len(), want.len(), "must preserve the sample count");
+
+        for (&got, &want) in got.iter().zip(want) {
+            assert!(got == want, "samples differs: wanted {want}, got {got}",);
+        }
     }
 
     #[test]
