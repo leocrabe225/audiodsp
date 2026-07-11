@@ -1,3 +1,17 @@
+enum Effect {
+    Gain { factor: f32 },
+    Echo { delay: usize, factor: f32 },
+}
+
+impl Effect {
+    fn apply(&self, samples: &[f32]) -> Vec<f32> {
+        match self {
+            Effect::Gain { factor } => gain(samples, *factor),
+            Effect::Echo { delay, factor } => echo(samples, *delay, *factor),
+        }
+    }
+}
+
 fn gain(samples: &[f32], factor: f32) -> Vec<f32> {
     samples.iter().map(|&s| s * factor).collect()
 }
@@ -14,6 +28,12 @@ fn echo(samples: &[f32], delay: usize, factor: f32) -> Vec<f32> {
             }
         })
         .collect()
+}
+
+fn apply_chain(effects: &[Effect], samples: &[f32]) -> Vec<f32> {
+    effects
+        .iter()
+        .fold(samples.to_vec(), |acc, effect| effect.apply(&acc))
 }
 
 #[cfg(test)]
@@ -158,6 +178,67 @@ mod tests {
         let output = echo(&input, 2, 0.5);
 
         assert_close(&output, &expected);
+    }
+
+    #[test]
+    fn a_chain_applies_each_effect_in_sequence() {
+        let input: Vec<f32> = vec![1.0, 0.0, 0.0, 0.0];
+        let expected: Vec<f32> = vec![2.0, 0.0, 1.0, 0.0];
+
+        let effects = vec![
+            Effect::Gain { factor: 2.0 },
+            Effect::Echo {
+                delay: 2,
+                factor: 0.5,
+            },
+        ];
+
+        let output = apply_chain(&effects, &input);
+
+        assert_close(&output, &expected);
+    }
+
+    #[test]
+    fn an_empty_chain_returns_unchanged_and_does_not_panic() {
+        let input: Vec<f32> = vec![1.0, 0.0, 0.0, 0.0];
+        let expected: Vec<f32> = vec![1.0, 0.0, 0.0, 0.0];
+
+        let effects = vec![];
+
+        let output = apply_chain(&effects, &input);
+
+        assert_close(&output, &expected);
+    }
+
+    #[test]
+    fn an_empty_buffer_returns_empty_and_does_not_panic() {
+        let input: Vec<f32> = vec![];
+        let expected: Vec<f32> = vec![];
+
+        let effects = vec![
+            Effect::Gain { factor: 2.0 },
+            Effect::Echo {
+                delay: 2,
+                factor: 0.5,
+            },
+        ];
+
+        let output = apply_chain(&effects, &input);
+
+        assert_close(&output, &expected);
+    }
+
+    #[test]
+    fn a_single_effect_chain_behaves_as_the_underlying_effect() {
+        let input: Vec<f32> = vec![3.0, 0.5, 1.0, 0.0];
+
+        let output1 = gain(&input, 2.0);
+
+        let effects = vec![Effect::Gain { factor: 2.0 }];
+
+        let output2 = apply_chain(&effects, &input);
+
+        assert_close(&output1, &output2);
     }
 
     #[track_caller]

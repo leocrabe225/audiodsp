@@ -6,6 +6,21 @@
   boundary (the `as i16` cast, saturating since Rust 1.45). Clamping mid-chain
   would discard signal a later effect could pull back into range.
 
+## Effects
+
+- Effects are a closed `enum Effect`, not a `trait` + dynamic dispatch. The
+  effect set is small and wholly owned by this crate, so compiler-enforced
+  exhaustive `match` (add a variant -> every match must handle it or it won't
+  compile) beats open extensibility. Revisit only if effects must be loaded
+  open / at runtime (plugins).
+- An effect whose output at sample `n` reads an *earlier* sample (echo reads
+  `n - delay`; the low-pass filter will read `n - 1`) must stay out-of-place:
+  read the input slice, write a fresh `Vec`. An in-place `&mut [f32]` pass going
+  forward overwrites `samples[n - delay]` before index `n` reads it, silently
+  turning one echo into a decaying feedback loop — wrong numbers, no panic. The
+  per-call allocation is correctness, not overhead. (`gain` is in-place-safe:
+  output `n` depends only on input `n`.)
+
 ## Tests
 
 - Never `==` on computed floats. Use `assert!((a - b).abs() < 1e-6)` for

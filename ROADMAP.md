@@ -14,7 +14,7 @@ Items are listed roughly in build order. Checked items are done.
 - [x] **Gain.** Scale the amplitude of every sample by a constant factor.
   Covered by tests for unity gain (output equals input), zero gain (silence),
   and a doubling factor, including the handling of values that would clip.
-- [ ] **Effect model.** A single shared representation for effects so new ones
+- [x] **Effect model.** A single shared representation for effects so new ones
   can be added and composed without touching the rest of the pipeline.
 - [x] **Delay and echo.** Mix in a delayed and attenuated copy of the signal.
   Tested by feeding a single impulse and checking that a second, quieter impulse
