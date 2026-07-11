@@ -14,12 +14,21 @@
   compile) beats open extensibility. Revisit only if effects must be loaded
   open / at runtime (plugins).
 - An effect whose output at sample `n` reads an *earlier* sample (echo reads
-  `n - delay`; the low-pass filter will read `n - 1`) must stay out-of-place:
+  `n - delay`) must stay out-of-place:
   read the input slice, write a fresh `Vec`. An in-place `&mut [f32]` pass going
   forward overwrites `samples[n - delay]` before index `n` reads it, silently
   turning one echo into a decaying feedback loop — wrong numbers, no panic. The
   per-call allocation is correctness, not overhead. (`gain` is in-place-safe:
   output `n` depends only on input `n`.)
+- `Effect::LowPass { alpha }` is one-pole IIR (`y[n] = α·x[n] + (1-α)·y[n-1]`),
+  carrying its previous *output* in the iterator's `scan` state — it never indexes
+  the input buffer, unlike echo. `alpha` is deliberately not validated (scoped
+  week). Note the trap for later: unlike gain/echo (feedforward — a bad factor
+  only scales output, bounded), this is feedback with a pole at `1-α`. It's stable
+  only for `0 < α < 2`, an actual low-pass only for `α ∈ (0, 1]`; outside that the
+  output diverges (grows unbounded each sample), it does not clip. If hardened,
+  prefer a validating `Alpha` newtype (illegal states unrepresentable) over a
+  runtime clamp/assert.
 
 ## Tests
 

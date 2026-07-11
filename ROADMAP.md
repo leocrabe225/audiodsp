@@ -19,7 +19,7 @@ Items are listed roughly in build order. Checked items are done.
 - [x] **Delay and echo.** Mix in a delayed and attenuated copy of the signal.
   Tested by feeding a single impulse and checking that a second, quieter impulse
   appears at the expected sample offset.
-- [ ] **Low pass filter.** A basic filter across the sample stream, verified
+- [x] **Low pass filter.** A basic filter across the sample stream, verified
   against known inputs.
 - [ ] **Command line interface.** Select and chain multiple effects from the
   command line along with their parameters.
