@@ -16,7 +16,7 @@ Items are listed roughly in build order. Checked items are done.
   and a doubling factor, including the handling of values that would clip.
 - [ ] **Effect model.** A single shared representation for effects so new ones
   can be added and composed without touching the rest of the pipeline.
-- [ ] **Delay and echo.** Mix in a delayed and attenuated copy of the signal.
+- [x] **Delay and echo.** Mix in a delayed and attenuated copy of the signal.
   Tested by feeding a single impulse and checking that a second, quieter impulse
   appears at the expected sample offset.
 - [ ] **Low pass filter.** A basic filter across the sample stream, verified
