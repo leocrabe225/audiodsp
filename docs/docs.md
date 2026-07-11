@@ -1,6 +1,10 @@
 ## Sample format
 
 - Dithering is out of scope for this project.
+- Effects never clamp internally. A sample may exceed ±1.0 mid-chain;
+  saturation to the i16 range happens exactly once, at the f32->i16 write
+  boundary (the `as i16` cast, saturating since Rust 1.45). Clamping mid-chain
+  would discard signal a later effect could pull back into range.
 
 ## Tests
 
