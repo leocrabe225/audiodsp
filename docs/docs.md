@@ -42,7 +42,12 @@
   not `Display`, discarding the crafted message. No unified app-error enum
   (`Parse | Io`) either: two small handling sites in `main` beat the machinery for a
   week-scoped tool.
-
+- `lib::run(&Config) -> Result<(), hound::Error>` is the read->apply->write seam,
+  called by both `main` and the integration test so the wiring is tested rather than
+  duplicated. Return type is the concrete `hound::Error`, not `Box<dyn Error>`: every
+  failure in `run` is a `hound::Error`, so erasing the type would trade real precision
+  for flexibility that isn't needed. Widen only when `run` can fail more than one way.
+  
 ## Tests
 
 - Never `==` on computed floats. Use `assert!((a - b).abs() < 1e-6)` for

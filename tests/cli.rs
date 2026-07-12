@@ -1,5 +1,4 @@
 use audiodsp::cli;
-use audiodsp::dsp;
 use audiodsp::io;
 use std::path::Path;
 
@@ -29,22 +28,20 @@ fn full_pipeline_processes_fixture_sample_accurately() {
 
     let config = cli::parse_args(&args).unwrap();
 
-    let (samples, sample_rate) = io::read_wav(Path::new(&config.input)).unwrap();
+    audiodsp::run(&config).unwrap();
 
-    let result = dsp::apply_chain(&config.effects, &samples);
+    let (samples, _) = io::read_wav(Path::new(&config.output)).unwrap();
 
     assert_eq!(
-        result.len(),
+        samples.len(),
         expected.len(),
         "must preserve the sample count"
     );
 
-    for (&result, expected) in result.iter().zip(expected) {
+    for (&result, expected) in samples.iter().zip(expected) {
         assert!(
             (result - expected).abs() < 1e-6,
             "sample differs: wanted {expected}, got {result}",
         );
     }
-
-    io::write_wav(Path::new(&config.output), &result, sample_rate).unwrap();
 }
