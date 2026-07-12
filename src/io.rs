@@ -14,7 +14,7 @@ fn i16_array_to_f32_vector(sample: &[i16]) -> Vec<f32> {
     sample.iter().map(|s| i16_to_f32(*s)).collect()
 }
 
-fn write_wav(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), hound::Error> {
+pub fn write_wav(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), hound::Error> {
     let spec = hound::WavSpec {
         channels: 1,
         sample_rate,
@@ -29,7 +29,7 @@ fn write_wav(path: &Path, samples: &[f32], sample_rate: u32) -> Result<(), hound
     Ok(())
 }
 
-fn read_wav(path: &Path) -> Result<(Vec<f32>, u32), hound::Error> {
+pub fn read_wav(path: &Path) -> Result<(Vec<f32>, u32), hound::Error> {
     let reader = hound::WavReader::open(path)?;
     let sample_rate = reader.spec().sample_rate;
     let samples = reader

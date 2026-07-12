@@ -30,6 +30,19 @@
   prefer a validating `Alpha` newtype (illegal states unrepresentable) over a
   runtime clamp/assert.
 
+## CLI
+
+- The argument parser is hand-rolled (`cli::parse_args`), not `clap`.
+  Grammar is positional: `<in> <out> [<effect> <params>...]`, effects applied 
+  in argument order (pinned by `cli` tests).
+  Reach for `clap` only if the surface grows flags/subcommands.
+- Errors are handled manually in `main`: `eprintln!("{e}")` (via `Display for
+  ParseError`) then `std::process::exit(1)`. Deliberately *not*
+  `main() -> Result<(), Box<dyn Error>>` — that path renders the error with `Debug`,
+  not `Display`, discarding the crafted message. No unified app-error enum
+  (`Parse | Io`) either: two small handling sites in `main` beat the machinery for a
+  week-scoped tool.
+
 ## Tests
 
 - Never `==` on computed floats. Use `assert!((a - b).abs() < 1e-6)` for

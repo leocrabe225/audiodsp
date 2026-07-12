@@ -21,7 +21,7 @@ Items are listed roughly in build order. Checked items are done.
   appears at the expected sample offset.
 - [x] **Low pass filter.** A basic filter across the sample stream, verified
   against known inputs.
-- [ ] **Command line interface.** Select and chain multiple effects from the
+- [x] **Command line interface.** Select and chain multiple effects from the
   command line along with their parameters.
 - [ ] **Block processing.** Process the audio in fixed size chunks instead of
   all at once. This is closer to how real time audio systems hand data to a

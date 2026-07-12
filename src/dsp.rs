@@ -1,4 +1,5 @@
-enum Effect {
+#[derive(Debug, PartialEq)]
+pub enum Effect {
     Gain { factor: f32 },
     Echo { delay: usize, factor: f32 },
     LowPass { alpha: f32 },
@@ -42,7 +43,7 @@ fn low_pass(samples: &[f32], alpha: f32) -> Vec<f32> {
         .collect()
 }
 
-fn apply_chain(effects: &[Effect], samples: &[f32]) -> Vec<f32> {
+pub fn apply_chain(effects: &[Effect], samples: &[f32]) -> Vec<f32> {
     effects
         .iter()
         .fold(samples.to_vec(), |acc, effect| effect.apply(&acc))
